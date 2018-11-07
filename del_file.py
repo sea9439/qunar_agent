@@ -148,7 +148,9 @@ def del_pxc_binlog(file_path):
 def del_file(file_path):
     if get_path_type(file_path) == 'ordinary':
         #del_ordinary_file(file_path)
+        print('del_file now ')
         if del_ordinary_file(file_path):
+            print('remove file succees')
             return 'succeed'
     if get_path_type(file_path) == 'binlog' and get_cluster_type() == 'PXC':
         if not del_pxc_binlog(file_path) :
