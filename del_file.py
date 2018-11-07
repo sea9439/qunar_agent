@@ -38,7 +38,7 @@ def get_path_type(file_path):
     #print(file_path)
     binlog_pattern = re.compile('binlog')
     port_pattern=re.compile('\d{4}')
-    if port_pattern.search(file_path) and binlog_pattern.search(file_path)
+    if port_pattern.search(file_path) and binlog_pattern.search(file_path):
         return 'binlog'
     elif not port_pattern.search(file_path):
         return 'ordinary'
