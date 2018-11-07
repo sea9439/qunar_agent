@@ -48,7 +48,7 @@ def get_path_type(file_path):
 
 
 #获取mysql实例端口
-def get_mysql_port():
+def get_mysql_port(file_path):
     if  get_path_type(file_path) == 'binlog':
         port_pattern = re.compile('\d{4}')
         res=port_pattern.search(file_path)
@@ -80,7 +80,7 @@ def get_cluster_type():
 
 
 #获取binlog个数,所有binlog
-def get_binlog_info():
+def get_binlog_info(file_path):
 
     if get_path_type(file_path) != 'binlog':
         return
