@@ -54,11 +54,11 @@ def get_task():
     if qdc_conn == None:
         return 0
     qdc_cursor=qdc_conn.cursor()
-    sql='select command from command where hostname=%s;'%(hostname)
+    sql='select id,command from command where hostname=%s;'%(hostname)
     try:
         qdc_cursor.execute(sql)
         rows=qdc_cursor.fetchall()
-    except:
+    except  pymysql.Error as e :
         logger.error("Execute SQL fail, host: %s, port: %s, SQL: '%s', Msg: (%s, %s)" % (qdc_host, qdc_port, sql, e.args[0], e.args[1]))
 
     for task  in rows:
@@ -66,7 +66,7 @@ def get_task():
         task_dict=task_line[0]
         if "path" in task_dict and "type" in task_dict and task_dict['type'] == 'delete file':
             file_path=task_dict["path"]
-            del_file()
+            del_file(file_path)
 
 
 
