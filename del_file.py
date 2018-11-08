@@ -33,7 +33,7 @@ def get_mysql_conn(host, port=3306, user="", passwd=""):
 
 
 #判断路径类型,是binlog还是普通文件
-#file_path='/home/q/mysql/3306/binlog/'
+file_path='/home/q/mysql/3306/binlog/'
 def get_path_type(file_path):
     #print(file_path)
     binlog_pattern = re.compile('binlog')
@@ -50,9 +50,11 @@ def get_path_type(file_path):
 #获取mysql实例端口
 def get_mysql_port(file_path):
     if  get_path_type(file_path) == 'binlog':
+        print(file_path)
         port_pattern = re.compile('\d{4}')
         res=port_pattern.search(file_path)
-        mysql_port=res.group()
+        mysql_port=int(res.group())
+        print(mysql_port)
 
         return mysql_port
 
@@ -146,6 +148,7 @@ def del_pxc_binlog(file_path):
 
 
 def del_file(file_path):
+
     if get_path_type(file_path) == 'ordinary':
         #del_ordinary_file(file_path)
         print('del_file now ')
@@ -157,3 +160,4 @@ def del_file(file_path):
             return False
         return True
 
+get_mysql_port(file_path)
