@@ -128,11 +128,11 @@ def del_ordinary_file(file_path):
 
 #清理PXC binlog文件
 def del_pxc_binlog(file_path):
-    if not get_binlog_info():
+    if not get_binlog_info(file_path):
         return False
-    (num,binlog_list)=get_binlog_info()
+    (num,binlog_list)=get_binlog_info(file_path)
     local_binlog=binlog_list[19]
-    local_port=get_mysql_port()
+    local_port=get_mysql_port(file_path)
     local_con=get_mysql_conn(local_host, local_port, local_user,local_password)
     cursor=local_con.cursor()
     try:
