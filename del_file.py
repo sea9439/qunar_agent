@@ -62,10 +62,10 @@ def get_mysql_port(file_path):
 
 
 #判断集群类型
-def get_cluster_type():
+def get_cluster_type(file_path):
     try:
-        if get_mysql_port() is not None:
-            mysql_port = get_mysql_port()
+        if get_mysql_port(file_path) is not None:
+            mysql_port = get_mysql_port(file_path)
     except :
         logger.error("get mysql instance port error!")
 
