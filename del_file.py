@@ -155,7 +155,7 @@ def del_file(file_path):
         if del_ordinary_file(file_path):
             print('remove file succees')
             return 'succeed'
-    if get_path_type(file_path) == 'binlog' and get_cluster_type() == 'PXC':
+    if get_path_type(file_path) == 'binlog' and get_cluster_type(file_path) == 'PXC':
         if not del_pxc_binlog(file_path) :
             return False
         return True
