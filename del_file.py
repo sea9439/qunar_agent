@@ -22,7 +22,7 @@ logger = logging.getLogger('agent_logger')
 min_num=20
 
 #连接数据库
-def get_mysql_conn(host, port=3306, user="", passwd=""):
+def get_mysql_conn(host, port, user="", passwd=""):
     try:
         conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd,cursorclass = pymysql.cursors.DictCursor )
     except pymysql.Error as e:
@@ -33,7 +33,7 @@ def get_mysql_conn(host, port=3306, user="", passwd=""):
 
 
 #判断路径类型,是binlog还是普通文件
-file_path='/home/q/mysql/3306/binlog/'
+
 def get_path_type(file_path):
     #print(file_path)
     binlog_pattern = re.compile('binlog')
@@ -160,4 +160,3 @@ def del_file(file_path):
             return False
         return True
 
-get_mysql_port(file_path)
