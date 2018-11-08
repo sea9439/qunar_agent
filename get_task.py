@@ -67,7 +67,7 @@ def get_task():
         if "path" in task_dict and "type" in task_dict and task_dict['type'] == 'delete file':
             file_path=task_dict["path"]
             del_file(file_path)
-
+get_task()
 
 
 
