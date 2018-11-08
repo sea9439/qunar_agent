@@ -54,7 +54,7 @@ def get_task():
     if qdc_conn == None:
         return 0
     qdc_cursor=qdc_conn.cursor()
-    sql='select id,command from command where hostname="%s";'%(hostname)
+    sql='select id,command from jin.command where hostname="%s";'%(hostname)
     try:
         qdc_cursor.execute(sql)
         rows=qdc_cursor.fetchall()
