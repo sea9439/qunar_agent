@@ -17,15 +17,6 @@ hostname=socket.gethostname()
 ip = socket.gethostbyname(hostname)
 
 
-global qdc_host,qdc_port,qdc_user,qdc_password
-#qdc_host='l-qdcdb1.dba.cn8'
-#qdc_port=3306
-#qdc_user='dba_agent'
-#qdc_password='qsgXzYMkTx8WBcRE'
-qdc_host='l-jinhldb2.dba.dev.cn0'
-qdc_port=3307
-qdc_user='hailan.jin'
-qdc_password='7SqDiaCZXedstHbI'
 
 
 
