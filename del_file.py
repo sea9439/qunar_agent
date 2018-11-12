@@ -9,10 +9,17 @@ import logging
 import subprocess
 import re
 import socket
-
+import time
 logger = logging.getLogger('agent_logger')
 
-min_num = 20
+global local_host, local_user, local_password
+local_host = '127.0.0.1'
+local_password = 'xDvmgk67izldscTs'
+local_user = 'dba'
+
+file_path = '/home/q/mysql/multi/3307/binlog'
+DEFAULT_PURGE_NUM = 20
+DEFAULT_MIN_NUM = 50
 
 
 # 连接数据库
@@ -49,7 +56,7 @@ def get_mysql_port(file_path):
         return mysql_port
 
 
-# 判断集群类型
+# 判断集群删除方法
 def get_cluster_type(file_path):
     try:
         if get_mysql_port(file_path) is not None:
@@ -58,45 +65,60 @@ def get_cluster_type(file_path):
         logger.error("get mysql instance port error!")
 
     conn = pymysql.connect(host=local_host, port=mysql_port, user=local_user, passwd=local_password)
-    with conn as cursor:
-        cursor.execute('show variables like \'semi_sync\'')
-        if cursor.fetchone() is not None:
-            return 'QMHA'
-        cursor.execute('show variables like \'wsrep%\'')
-        if cursor.fetchone() is not None:
-            return 'PXC'
-    return 'UNKOWN'
+    cursor = conn.cursor()
+    cursor.execute('show variables like \'wsrep%\'')
+    if cursor.fetchone() is not None:
+        return 'pxc'
+    else:
+        cursor.fetchall()
 
 
-# 获取binlog个数,所有binlog
-def get_binlog_info(file_path):
-    if get_path_type(file_path) != 'binlog':
-        return
+# # 获取binlog个数,所有binlog
+# def get_binlog_info(file_path,num):
+#     if get_path_type(file_path) != 'binlog':
+#         return
+#
+# binlog_pattern = 'mysql-bin\\.\d{6}'
+# binlog_list = []
+# for item in os.listdir(file_path):
+#     if re.match(binlog_pattern, item):
+#        binlog_list.append(item)
+#     else:
+#         continue
+# binlog_list = sorted(binlog_list)
+# # if num <= DEFAULT_MIN_NUM:
+# #     return False
+# actual_num = num if len(out) - num >= DEFAULT_MIN_NUM else len(
+#     out) - DEFAULT_MIN_NUM
+# return num, binlog_list
 
-    binlog_pattern = 'mysql-bin\\.\d{6}'
-    num = 0
-    binlog_list = []
-    for item in os.listdir(file_path):
-        if re.match(binlog_pattern, item):
-            num += 1
-            binlog_list.append(item)
-        else:
-            continue
-    binlog_list = sorted(binlog_list)
-    if num <= min_num:
+# 获取binlog列表
+def get_binlog_list(file_path):
+    binlogs = subprocess.getoutput('cat {file_path}/mysql-bin.index'.format(file_path))
+    binlog_list = binlogs.split('\n')
+    return binlog_list
+
+
+# 判断能否删除binlog
+def check_deletable(num):
+    binlog_list = get_path_type(file_path)
+    if len(binlog_list) - num >= DEFAULT_MIN_NUM:
+        return True
+    else:
         return False
-    return num, binlog_list
 
 
-# 判断是可以删除，默认保留20个binlog
-# def check_binlog_available():
-#     min_num=20
-#     if not get_binlog_info():
-#         return False
-#     binlog_num=get_binlog_info()
-#     if binlog_num <= min_num:
-#         return  False
-#     return True
+# 获取要删除的binlog信息
+def get_binlog_info(num):
+    if get_path_type(file_path) != 'binlog':
+        return False
+    binlog_list = get_path_type(file_path)
+    if check_deletable(num) is False:
+        return False
+    del_num = len(binlog_list) - DEFAULT_MIN_NUM
+    return binlog_list[:del_num]
+
+
 
 
 # 删除普通文件
@@ -109,24 +131,20 @@ def del_ordinary_file(file_path):
         return False
 
 
-# 清理PXC binlog文件
-def del_pxc_binlog(file_path):
-    if not get_binlog_info(file_path):
-        return False
-    (num, binlog_list) = get_binlog_info(file_path)
-    local_binlog = binlog_list[19]
-    local_port = get_mysql_port(file_path)
-    local_con = get_mysql_conn(local_host, local_port, local_user, local_password)
-    cursor = local_con.cursor()
-    try:
-        clean_binlog_sql = "purge binary logs to '%s'" % (local_binlog)
-        cursor.execute(clean_binlog_sql)
-        cursor.close()
-    except pymysql.Error as e:
-        logger.error("Execute SQL fail ,host: %s, port: %s, SQL: '%s', Msg: (%s, %s)" % (
-        local_host, local_port, clean_binlog_sql, e.args[0], e.args[1]))
-        return False
-    return True
+
+
+# 删除binlog，默认删除20个
+def remove_binlog(file_path):
+    del_binlog_list = get_binlog_info(file_path)
+    os.chdir(file_path)
+    for binlog in del_binlog_list :
+        os.remove(binlog)
+        time.sleep(1)
+
+# 清空binlog
+def purge_to_binlog(num,index_path):
+    subprocess.getoutput('sed -i \'1, {number}d\' {index_path}/mysql-bin.index'.format(number=num,file_path=file_path))
+
 
 
 def del_file(file_path):
@@ -136,7 +154,7 @@ def del_file(file_path):
         if del_ordinary_file(file_path):
             print('remove file succees')
             return 'succeed'
-    if get_path_type(file_path) == 'binlog' and get_cluster_type(file_path) == 'PXC':
-        if not del_pxc_binlog(file_path):
+    if get_path_type(file_path) == 'binlog' and get_cluster_type(file_path) == 'pxc':
+        if not purge_binlog(file_path):
             return False
         return True
